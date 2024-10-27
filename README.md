@@ -15,7 +15,7 @@ The script requires an R installation with renv installed.
 - ensure your system has R installed
 - Add the script to your `PATH` for example by placing it in a folder `~/bin/` and adding `export PATH=$PATH:~/bin` to your .zshrc or .bashrc file (adjust for your chosen choice of shell)
 
-### Usage
+### Running
 
 When you need to start a new project, identify the path for the root directory of the project, and the desired name of the R kernel, and run the following, for example :
 
@@ -50,7 +50,7 @@ The directory structure is somewhat opinionated, creating a tree of directories 
   - `Rscript 00-install-kernel.R` in the terminal, or
   - `source("00-install-kernel.R")`, from an interactive R session.
 
-## Output
+### Output
 
 The logs should be informative.  If the project directory already exists the script will fail informatively.
 
