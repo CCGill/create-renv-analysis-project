@@ -1,4 +1,4 @@
-# automate-renv-analysis-project
+# create-renv-analysis-project
 
 This helper-script is intended for those who need to run several short term R analysis projects, primarily interacting through jupyter notebooks, and want to ensure you have a reproducible R environment managed by `renv` and with a consistent folder structure.
 
