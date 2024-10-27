@@ -1,0 +1,128 @@
+#!/usr/bin/env Rscript
+
+# Script to set up a basic R project environment with renv configured in a notebooks directory.
+SCRIPT_NAME <- "setup-R-project"
+SCRIPT_REQUIRED_NAMESPACES <- c("renv")
+
+
+if (!exists("args") || class(args) != "character") {
+  args <- commandArgs(trailingOnly = TRUE)
+}
+
+assert <- function(condition, error_message) {
+  if (!condition) {
+    stop(error_message)
+  } else {
+    return(invisible(condition))
+  }
+}
+# SETUP ARGS
+
+if (length(args) < 4) {
+  message("Usage: setup-r-project <options>
+      REQUIRED ARGUMENTS:
+      * --kernel_name <kernel_name>: Name for the corresponding IRkernel R kernel in jupyter
+      * --location <location>: Path to the directory of the R project to be created.")
+  stop("Must provide 2 the above arguments")
+}
+
+message(paste(c("Script", SCRIPT_NAME, "called with args:", args), collapse = " "))
+
+kernel_name <- NULL
+location <- NULL
+
+## Parse Args
+tempargs <- args
+i <- 1
+while (i <= length(tempargs)) {
+  if (tempargs[i] == "--kernel_name") {
+    if (length(tempargs) < i + 1) stop("Invalid command for --kernel_name")
+    assert(is.null(kernel_name), "kernel name specified twice")
+    kernel_name <- tempargs[i + 1]
+    tempargs <- tempargs[-c(i, i + 1)]
+  } else if (tempargs[i] == "--location") {
+    if (length(tempargs) < i + 1) stop("Invalid command for --location")
+    assert(is.null(location), "location specified twice")
+    location <- tempargs[i + 1]
+    tempargs <- tempargs[-c(i, i + 1)]
+  } else {
+    stop("Unexpected input")
+  }
+}
+
+# ENSURE REQUIRED NAMESPACES ARE AVAILABLE
+for (pkg in SCRIPT_REQUIRED_NAMESPACES) {
+  if (!requireNamespace(pkg)) {
+    install.packages(pkg) # ensures the package is installed.
+  }
+  requireNamespace(pkg)
+}
+
+# Create Project Directory Structure
+message("1. Creating project directory structure ", location)
+dir.create(location, recursive = TRUE)
+
+DIRS <- c(
+  paste(location, "data", c("00_source", "01_staging", "02_prepared"), sep = "/"),
+  paste(location, "figures", sep = "/"),
+  paste(location, "output", c("data", "figures", "other"), sep = "/"),
+  paste(location, "notebooks", sep = "/")
+)
+
+for (directory in DIRS) {
+  message("Creating directory ", directory)
+  if (!dir.exists(directory)) {
+    dir.create(directory, recursive = TRUE)
+  } else {
+    stop("Directory already exists")
+  }
+}
+
+system(paste("tree", location))
+
+message("2. Creating project R environment")
+
+setwd(location)
+renv::init()
+
+# create kernel activation script and install jupyter kernel
+install.packages("IRkernel")
+
+message("3. Creating kernel activate script and activate kernel as ", kernel_name)
+
+# setup .Rprofile file to allow renv config in parent of notebooks/ folder.
+cat(
+  'owd <- setwd(".."); source("renv/activate.R"); setwd(owd)',
+  file = paste(location, "notebooks", ".Rprofile", sep = "/")
+)
+
+# create kernel activation script
+kernel_activation_script <- paste(location, "notebooks", "00-install-kernel.R", sep = "/")
+install_kernel_text <- paste0(
+  'IRkernel::installspec(user = TRUE, name = "',
+  kernel_name,
+  '", displayname = "',
+  kernel_name,
+  '")'
+)
+script_instructions <- "# script to reinstall (re-activate) jupyter R kernel, run from the terminal with './00-install-kernel.R'"
+
+cat(
+  paste0(
+    "#!/usr/bin/env Rscript\n",
+    "\n",
+    script_instructions,
+    "\n",
+    "\n",
+    'requireNamespace("IRkernel")\n',
+    install_kernel_text,
+    "\nmessage('Completed')\n"
+  ),
+  file = kernel_activation_script
+)
+source(kernel_activation_script)
+
+message("4. Snapshotting project R environment")
+renv::snapshot()
+
+message("Project setup completed")
