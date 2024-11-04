@@ -29,8 +29,8 @@ The directory structure is somewhat opinionated, creating a tree of directories 
 /path/to/project/directory/
 ├── data
 │   ├── 00_source
-│   ├── 01_staging
-│   └── 02_final
+│   ├── 01_intermediate
+│   └── 02_processed
 ├── figures
 ├── notebooks
 │   └── 00-install-kernel.R

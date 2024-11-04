@@ -63,7 +63,7 @@ message("1. Creating project directory structure ", location)
 dir.create(location, recursive = TRUE)
 
 DIRS <- c(
-  paste(location, "data", c("00_source", "01_staging", "02_final"), sep = "/"),
+  paste(location, "data", c("00_source", "01_intermediate", "02_processed"), sep = "/"),
   paste(location, "figures", sep = "/"),
   paste(location, "output", c("data", "figures", "other"), sep = "/"),
   paste(location, "notebooks", sep = "/")
